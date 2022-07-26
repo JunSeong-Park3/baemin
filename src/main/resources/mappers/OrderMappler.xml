@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.han.delivery.dao.OrderMapper">
+   
+	<select id="getDeliveryTip" resultType="int">
+		SELECT DELiVERY_TIP FROM BM_STORE WHERE ID = #{storeId }
+	</select>
+ 
+ 
+ 
+	<select id="foodPriceList" resultType="int">
+		<foreach collection="list" item="item"  separator="union all" >
+			select sum(food_price) sum from bm_food where id = #{item.foodId}
+		</foreach>
+	</select>
+	
+	
+	<select id="optionPriceList" resultType="int">
+		
+		<foreach collection="list" item="item"  separator="union all" >
+			<if test="item.optionId == null">
+				select 0 from dual 
+			</if>
+			
+			<if test="item.optionId != null">
+				select sum(option_price) sum from bm_food_option where id in
+				<foreach collection="item.optionId" item="i" open="(" close=")" separator="," >
+					#{i}
+				</foreach>
+			</if>
+			
+		</foreach>
+		
+	</select>
+	
+	<insert id="order">
+		<if test="userId == 0">
+			INSERT INTO DL_ORDER_NON_USER (
+			    ORDER_NUM
+			    ,STORE_ID 
+			    ,USER_ID 
+			    ,PAY_METHOD 
+			    ,PHONE
+			    ,DELIVERY_ADDRESS1
+			    ,DELIVERY_ADDRESS2
+			    ,DELIVERY_ADDRESS3
+			    ,TOTAL_PRICE 
+			    ,USED_POINT 
+			    ,REQUEST 
+		    ) VALUES (
+			    ${orderNum }
+			    ,#{storeId }
+			    ,#{userId }
+			    ,#{payMethod }
+			    ,#{phone }  
+			    ,#{DeliveryAddress1 }
+			    ,#{DeliveryAddress2 }
+			    ,#{DeliveryAddress3 } 
+			    ,#{totalPrice } 
+			    ,#{usedPoint } 
+			    ,#{request } 
+		    )
+		</if>
+		
+		
+		<if test="userId != 0">
+			INSERT INTO DL_ORDER_USER (
+			     ORDER_NUM
+			    ,STORE_ID 
+			    ,USER_ID 
+			    ,PAY_METHOD 
+			    ,PHONE
+			    ,DELIVERY_ADDRESS1
+			    ,DELIVERY_ADDRESS2
+			    ,DELIVERY_ADDRESS3
+			    ,TOTAL_PRICE 
+			    ,USED_POINT 
+			    ,REQUEST 
+		    ) VALUES (
+			    ${orderNum }
+			    ,#{storeId }
+			    ,#{userId }
+			    ,#{payMethod }
+			    ,#{phone }  
+			    ,#{DeliveryAddress1 }
+			    ,#{DeliveryAddress2 }
+			    ,#{DeliveryAddress3 } 
+			    ,#{totalPrice } 
+			    ,#{usedPoint } 
+			    ,#{request } 
+		    )
+		</if>
+	</insert>
+	
+	<update id="orderDetail" parameterType="java.util.HashMap">
+	
+		<if test= "userId == 0">
+			<foreach collection="detail" item="item" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL"> 
+				 INTO DL_ORDER_DETAIL_NON_USER (
+					ORDER_NUM
+				   ,FOOD_INFO
+				) VALUES (
+				#{item.orderNum}
+			   ,#{item.foodInfoJSON}
+				)
+			</foreach> 
+		</if>
+		
+		<if test= "userId != 0">
+			<foreach collection="detail" item="item" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL"> 
+				 INTO DL_ORDER_DETAIL_USER (
+					ORDER_NUM
+				   ,FOOD_INFO
+				) VALUES (
+				#{item.orderNum}
+			   ,#{item.foodInfoJSON}
+				)
+			</foreach> 
+		</if>
+		
+		
+	</update>
+   
+</mapper>
